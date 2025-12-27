@@ -474,11 +474,11 @@ export const supabaseService = {
 
         if (error) throw error;
 
-        const citations = data || [];
+        const citations = (data || []) as Citation[];
         const byType: Record<string, number> = {};
         const byMood: Record<string, number> = {};
 
-        citations.forEach((c) => {
+        citations.forEach((c: Citation) => {
           byType[c.source_type] = (byType[c.source_type] || 0) + 1;
           c.moods.forEach((m: string) => {
             byMood[m] = (byMood[m] || 0) + 1;
@@ -527,7 +527,9 @@ export const supabaseService = {
       }
 
       try {
-        const { error } = await supabase.from('profiles').upsert(profile);
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(profile as any);
         if (error) throw error;
         return { error: null };
       } catch (error) {
@@ -553,7 +555,7 @@ export const supabaseService = {
           .eq('user_id', userId);
 
         if (error) throw error;
-        return { favoriteIds: data?.map((f) => f.citation_id) || [], error: null };
+        return { favoriteIds: data?.map((f: any) => f.citation_id) || [], error: null };
       } catch (error) {
         console.error('Error fetching favorites:', error);
         return { favoriteIds: [], error: error as Error };
@@ -574,7 +576,7 @@ export const supabaseService = {
       try {
         const { error } = await supabase
           .from('user_favorites')
-          .insert({ user_id: userId, citation_id: citationId });
+          .insert({ user_id: userId, citation_id: citationId } as any);
 
         if (error) throw error;
         return { error: null };

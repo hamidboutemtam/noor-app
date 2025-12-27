@@ -3,7 +3,12 @@
     "allow": [
       "Bash(git init:*)",
       "Bash(git branch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit - Noor App avec authentification Google\n\n- Application React + Vite + TypeScript\n- Authentification Google via Supabase\n- Citations inspirantes \\(Coran, Hadiths, Sagesse\\)\n- Système de favoris avec base de données\n- Mode sombre/clair\n- Profils utilisateurs \\(Particulier/Entrepreneur\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(npm run build:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
