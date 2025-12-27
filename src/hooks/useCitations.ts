@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabaseService } from '@/services/supabase.service';
-import type { Citation, Mood, UserProfile } from '@/types';
+import type { Citation, Mood, UserProfile, SourceType } from '@/types';
 
 export function useCitations() {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +15,8 @@ export function useCitations() {
     async (
       mood: Mood,
       userProfile: UserProfile,
-      modeEpreuve: boolean = false
+      modeEpreuve: boolean = false,
+      preferredSources?: SourceType[]
     ): Promise<Citation | null> => {
       setIsLoading(true);
       setError(null);
@@ -24,7 +25,8 @@ export function useCitations() {
         const { citation, error } = await supabaseService.citations.getByMood(
           mood,
           userProfile,
-          modeEpreuve
+          modeEpreuve,
+          preferredSources
         );
 
         if (error) {

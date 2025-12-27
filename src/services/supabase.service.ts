@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import type { Citation, Profile, UserFavorite, Mood, UserProfile } from '@/types';
+import type { Citation, Profile, UserFavorite, Mood, UserProfile, SourceType } from '@/types';
 
 // ============================================
 // CITATIONS LOCALES DE FALLBACK
@@ -310,7 +310,8 @@ export const supabaseService = {
     async getByMood(
       mood: Mood,
       userProfile: UserProfile,
-      modeEpreuve: boolean = false
+      modeEpreuve: boolean = false,
+      preferredSources?: SourceType[]
     ): Promise<{ citation: Citation | null; error: Error | null }> {
       if (!isSupabaseConfigured) {
         // Filtrer les citations locales
@@ -318,8 +319,19 @@ export const supabaseService = {
           const moodMatch = c.moods.includes(mood);
           const profileMatch = c.target.includes(userProfile);
           const epreuveMatch = modeEpreuve ? c.epreuve : true;
-          return moodMatch && profileMatch && (modeEpreuve ? epreuveMatch : true);
+          const sourceMatch = preferredSources ? preferredSources.includes(c.source_type) : true;
+          return moodMatch && profileMatch && (modeEpreuve ? epreuveMatch : true) && sourceMatch;
         });
+
+        // Fallback sans filtrage par sources préférées
+        if (filtered.length === 0 && preferredSources) {
+          filtered = localCitations.filter((c) => {
+            const moodMatch = c.moods.includes(mood);
+            const profileMatch = c.target.includes(userProfile);
+            const epreuveMatch = modeEpreuve ? c.epreuve : true;
+            return moodMatch && profileMatch && (modeEpreuve ? epreuveMatch : true);
+          });
+        }
 
         if (filtered.length === 0) {
           filtered = localCitations.filter((c) => c.target.includes(userProfile));
@@ -344,11 +356,35 @@ export const supabaseService = {
           query = query.eq('epreuve', true);
         }
 
+        // Prioriser les sources préférées si spécifiées
+        if (preferredSources && preferredSources.length > 0) {
+          query = query.in('source_type', preferredSources);
+        }
+
         const { data, error } = await query;
 
         if (error) throw error;
 
-        // Si pas de résultat avec le mood, chercher par profil uniquement
+        // Fallback 1: Chercher sans filtrage par sources préférées
+        if ((!data || data.length === 0) && preferredSources && preferredSources.length > 0) {
+          let fallbackQuery = supabase
+            .from('citations')
+            .select('*')
+            .contains('moods', [mood])
+            .contains('target', [userProfile]);
+
+          if (modeEpreuve) {
+            fallbackQuery = fallbackQuery.eq('epreuve', true);
+          }
+
+          const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+          if (!fallbackError && fallbackData && fallbackData.length > 0) {
+            const randomCitation = fallbackData[Math.floor(Math.random() * fallbackData.length)];
+            return { citation: randomCitation, error: null };
+          }
+        }
+
+        // Fallback 2: Chercher par profil uniquement
         if (!data || data.length === 0) {
           const { data: fallbackData, error: fallbackError } = await supabase
             .from('citations')

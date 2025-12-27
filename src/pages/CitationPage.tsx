@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { CitationCard } from '@/components/CitationCard';
 import { useCitations } from '@/hooks/useCitations';
 import { MOODS } from '@/lib/constants';
@@ -18,6 +19,7 @@ export function CitationPage() {
     showToast,
   } = useApp();
 
+  const { profile } = useAuth();
   const { getCitationByMood, isLoading } = useCitations();
   const [citation, setCitation] = useState<Citation | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -28,10 +30,15 @@ export function CitationPage() {
     if (!selectedMood) return;
 
     setIsAnimating(true);
-    const newCitation = await getCitationByMood(selectedMood, userProfile, modeEpreuve);
+    const newCitation = await getCitationByMood(
+      selectedMood,
+      userProfile,
+      modeEpreuve,
+      profile?.preferred_sources
+    );
     setCitation(newCitation);
     setTimeout(() => setIsAnimating(false), 300);
-  }, [selectedMood, userProfile, modeEpreuve, getCitationByMood]);
+  }, [selectedMood, userProfile, modeEpreuve, profile?.preferred_sources, getCitationByMood]);
 
   useEffect(() => {
     fetchCitation();

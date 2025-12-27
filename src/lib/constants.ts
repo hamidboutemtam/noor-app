@@ -91,3 +91,48 @@ export const PROFILES = [
     description: 'Pour les projets',
   },
 ];
+
+export const SOURCES = [
+  {
+    id: 'quran' as SourceType,
+    label: 'Coran',
+    emoji: '📖',
+    color: SOURCE_COLORS.quran,
+    description: 'Versets du Saint Coran',
+  },
+  {
+    id: 'hadith_sahih' as SourceType,
+    label: 'Hadiths Sahih',
+    emoji: '✨',
+    color: SOURCE_COLORS.hadith_sahih,
+    description: 'Hadiths authentifiés',
+  },
+  {
+    id: 'hadith' as SourceType,
+    label: 'Hadiths',
+    emoji: '💫',
+    color: SOURCE_COLORS.hadith,
+    description: 'Traditions prophétiques',
+  },
+  {
+    id: 'action' as SourceType,
+    label: 'Actions',
+    emoji: '🎯',
+    color: SOURCE_COLORS.action,
+    description: 'Conseils pratiques',
+  },
+  {
+    id: 'rappel' as SourceType,
+    label: 'Rappels',
+    emoji: '🌟',
+    color: SOURCE_COLORS.rappel,
+    description: 'Rappels spirituels',
+  },
+  {
+    id: 'sagesse' as SourceType,
+    label: 'Sagesses',
+    emoji: '💎',
+    color: SOURCE_COLORS.sagesse,
+    description: 'Paroles de sagesse',
+  },
+];

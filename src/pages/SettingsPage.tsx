@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Moon, Sun, Database, RefreshCw, Sparkles, Heart, Settings, LogOut } from 'lucide-react';
+import { Moon, Sun, Database, RefreshCw, Sparkles, Heart, Settings, LogOut, Check } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileSelector, ActionButton } from '@/components/ui';
 import { supabaseService, isSupabaseConfigured } from '@/services/supabase.service';
+import { SOURCES } from '@/lib/constants';
+import type { SourceType } from '@/types';
 
 export function SettingsPage() {
   const { darkMode, setDarkMode, userProfile, setUserProfile, showToast, setCitationsCount } = useApp();
@@ -16,6 +18,16 @@ export function SettingsPage() {
   } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [preferredSources, setPreferredSources] = useState<SourceType[]>(
+    profile?.preferred_sources || ['quran', 'hadith_sahih', 'hadith', 'action', 'rappel', 'sagesse']
+  );
+
+  // Sync preferred sources from profile
+  useEffect(() => {
+    if (profile?.preferred_sources) {
+      setPreferredSources(profile.preferred_sources);
+    }
+  }, [profile?.preferred_sources]);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -54,6 +66,34 @@ export function SettingsPage() {
       showToast('Erreur lors de la déconnexion', 'error');
     } finally {
       setIsSigningOut(false);
+    }
+  };
+
+  const toggleSource = async (sourceId: SourceType) => {
+    const newSources = preferredSources.includes(sourceId)
+      ? preferredSources.filter((s) => s !== sourceId)
+      : [...preferredSources, sourceId];
+
+    // Au moins une source doit être sélectionnée
+    if (newSources.length === 0) {
+      showToast('Sélectionnez au moins une source', 'error');
+      return;
+    }
+
+    setPreferredSources(newSources);
+
+    // Mettre à jour en base de données
+    if (user && profile) {
+      try {
+        await supabaseService.profiles.upsert({
+          id: user.id,
+          preferred_sources: newSources,
+        });
+        showToast('Sources mises à jour', 'success');
+      } catch (error) {
+        console.error('Error updating preferred sources:', error);
+        showToast('Erreur lors de la mise à jour', 'error');
+      }
     }
   };
 
@@ -132,6 +172,51 @@ export function SettingsPage() {
             Mon profil
           </p>
           <ProfileSelector value={userProfile} onChange={handleProfileChange} />
+        </motion.div>
+
+        {/* Sources préférées */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="card p-5"
+        >
+          <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-4 font-medium">
+            Sources préférées
+          </p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4">
+            Choisissez les types de citations que vous souhaitez voir en priorité
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {SOURCES.map((source) => {
+              const isSelected = preferredSources.includes(source.id);
+              return (
+                <motion.button
+                  key={source.id}
+                  onClick={() => toggleSource(source.id)}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative p-4 rounded-xl border-2 transition-all ${
+                    isSelected
+                      ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.1)]'
+                      : 'border-[hsl(var(--border))] bg-[hsl(var(--card))]'
+                  }`}
+                >
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
+                      <Check size={12} className="text-white" />
+                    </div>
+                  )}
+                  <div className="text-2xl mb-2">{source.emoji}</div>
+                  <div className="text-sm font-semibold text-[hsl(var(--foreground))] mb-1">
+                    {source.label}
+                  </div>
+                  <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                    {source.description}
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* Base de données */}

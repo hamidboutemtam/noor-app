@@ -22,6 +22,7 @@ export interface Profile {
   avatar_url: string | null;
   has_boost: boolean;
   preferred_profile: 'particulier' | 'entrepreneur';
+  preferred_sources: SourceType[];
   created_at: string;
   updated_at: string;
 }
@@ -73,7 +74,7 @@ export type Database = {
       };
       profiles: {
         Row: Profile;
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>;
+        Insert: Omit<Profile, 'created_at' | 'updated_at' | 'preferred_sources'> & { preferred_sources?: SourceType[] };
         Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
       };
       user_favorites: {
