@@ -1,4 +1,5 @@
 import React from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AppProvider, useApp } from '@/contexts/AppContext';
 import { Header, BottomNav, Toast } from '@/components/ui';
@@ -40,6 +41,7 @@ function AppContent() {
       <main>{renderPage()}</main>
       <BottomNav />
       <Toast />
+      <Analytics />
     </div>
   );
 }
